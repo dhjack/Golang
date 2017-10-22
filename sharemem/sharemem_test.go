@@ -10,13 +10,13 @@ import (
 
 )
 
-type uidOnlineCache struct {
-	maxuid          int64
-	count           int64
+type someData struct {
+	data1          int64
+	data2           int64
 	capacity        int64
-	set             []uint8
-	rom             []uint8
-	httpCurReqCount int32
+	data3             []uint8
+	data4             []uint8
+	data5 int32
 }
 
 func TestSHAREMEM() {
@@ -28,10 +28,10 @@ func TestSHAREMEM() {
     fmt.Printf("test set share mem enable\n")
 }
 
-func newUidOnlineCache(size int64) (cache *uidOnlineCache, err error) {
+func newUidOnlineCache(size int64) (cache *someData, err error) {
 
-	// 获取uidOnlineCache的大小
-	cacheSize := unsafe.Sizeof(uidOnlineCache{})
+	// 获取someData的大小
+	cacheSize := unsafe.Sizeof(someData{})
 
     fmt.Printf("cacheSize:%v\n", cacheSize)
 
@@ -45,13 +45,13 @@ func newUidOnlineCache(size int64) (cache *uidOnlineCache, err error) {
 	controlBuf := GetShareMemory(g_shareMemoryKey, cacheSize)
 
 	// 获取set切片对应的数组的地址
-	setBuf := GetShareMemory(g_shareMemoryKey+1, capacity)
+	data3Buf := GetShareMemory(g_shareMemoryKey+1, capacity)
 
-	// 获取rom切片对应的数组的地址
-	romBuf := GetShareMemory(g_shareMemoryKey+2, capacity)
+	// 获取data4切片对应的数组的地址
+	data4Buf := GetShareMemory(g_shareMemoryKey+2, capacity)
 
 	// 加上偏移，得到cache地址
-	cache = (*uidOnlineCache)(unsafe.Pointer(controlBuf.GetRawBuf()))
+	cache = (*someData)(unsafe.Pointer(controlBuf.GetRawBuf()))
 
 	// slice有三个变量，第一个是数组的地址，第二个是当前的长度，第三个是数组的容量。所以一一赋值
 	mapToSlice := func(buf *ShmemPtr, offset uintptr) {
@@ -60,16 +60,16 @@ func newUidOnlineCache(size int64) (cache *uidOnlineCache, err error) {
 		*(*uintptr)(unsafe.Pointer(uintptr(unsafe.Pointer(controlBuf)) + Align*(offset+2))) = capacity
 	}
 
-	mapToSlice(setBuf, 7)
-	mapToSlice(romBuf, 10)
+	mapToSlice(data3Buf, 7)
+	mapToSlice(data4Buf, 10)
 
     fmt.Printf("cache before :%v\n", cache)
-	cache.httpCurReqCount = 0
+	cache.data5 = 0
 
 	if !controlBuf.IsEnable() {
 		logger.Info("share memory is unable, need sync!")
-		cache.maxuid = 0
-		cache.count = 0
+		cache.data1 = 0
+		cache.data2 = 0
 		cache.capacity = int64(capacity)
 		err = errors.New("share memory is unable")
 	} else {
@@ -81,7 +81,7 @@ func newUidOnlineCache(size int64) (cache *uidOnlineCache, err error) {
 	return
 }
 
-func (sc *uidOnlineCache) enable() {
+func (sc *someData) enable() {
 	GetControlPtr(uintptr(unsafe.Pointer(sc))).SetEnable()
 	fmt.Println("sync done. share memory is enable!")
 }
